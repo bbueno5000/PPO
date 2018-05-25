@@ -4,6 +4,7 @@ import atexit
 import numpy as np
 
 from .brain import BrainInfo, BrainParameters
+import gym_vertical_landing
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("unityagents")
@@ -21,9 +22,9 @@ class GymEnvironment(object):
         if skip_frames < 0 or not isinstance(skip_frames, int):
             logger.error("Invalid frame skip value. Frame skip deactivated.")
         elif skip_frames > 1:
-            frameskip_wrapper = gym.wrappers.SkipWrapper(skip_frames)
-            self.env = frameskip_wrapper(self.env)
-
+            # frameskip_wrapper = gym.wrappers.(skip_frames)
+            # self.env = frameskip_wrapper(self.env)
+            self.env = self.env
         if record:
             self.env = gym.wrappers.Monitor(self.env, "./video", lambda x: x % 1 == 0)
 

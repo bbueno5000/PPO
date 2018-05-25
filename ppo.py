@@ -46,7 +46,7 @@ keep_checkpoints = 5
 load_model = True
 # run-path=<path>          The sub-directory name for model and summary statistics.
 summary_path = './PPO_summary'
-model_path = './models'
+model_path = './working model/models'
 # summary-freq=<n>         Frequency at which to save training statistics [default: 10000].
 summary_freq = buffer_size * 5
 # save-freq=<n>            Frequency at which to save model [default: 50000].
@@ -60,7 +60,7 @@ record = True
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # GPU is not efficient here
 
-env_name = 'RocketLander-v0'
+env_name = 'VerticalLanding-v0'
 env = GymEnvironment(env_name=env_name, log_path="./PPO_log", skip_frames=6)
 env_render = GymEnvironment(env_name=env_name, log_path="./PPO_log_render", render=True, record=record)
 fps = env_render.env.metadata.get('video.frames_per_second', 30)
