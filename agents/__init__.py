@@ -1,2 +1,2 @@
-from .environment import *
-from .brain import *
+import brain
+import environment

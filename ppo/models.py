@@ -61,63 +61,10 @@ def save_model(sess, saver, model_path='.\\', steps=0):
     tf.train.write_graph(sess.graph_def, model_path, 'raw_graph_def.pb', as_text=False)
     logging.info('model:saved')
 
-
 class PPOModel:
 
     def __init__(self):
         self.normalize = 0
-
-    def _create_global_steps(self):
-        """
-        Creates TF ops to track and increment global training step.
-        """
-        self.global_step = tf.Variable(0, name='global_step', trainable=False, dtype=tf.int32)
-        self.increment_step = tf.assign(self.global_step, tf.cast(self.global_step, tf.int32) + 1)
-
-    def _create_reward_encoder(self):
-        """
-        Creates TF ops to track and increment recent average cumulative reward.
-        """
-        self.last_reward = tf.Variable(0, name='last_reward', trainable=False, dtype=tf.float32)
-        self.new_reward = tf.placeholder(shape=[], dtype=tf.float32, name='new_reward')
-        self.update_reward = tf.assign(self.last_reward, self.new_reward)
-
-    def _create_visual_encoder(self, o_size_h, o_size_w, bw, h_size, num_streams, activation, num_layers):
-        """
-        Builds a set of visual (CNN) encoders.
-
-        :param o_size_h: Height observation size.
-        :param o_size_w: Width observation size.
-        :param bw: Whether image is greyscale {True} or color {False}.
-        :param h_size: Hidden layer size.
-        :param num_streams: Number of visual streams to construct.
-        :param activation: What type of activation function to use for layers.
-        :return: List of hidden layer tensors.
-        """
-        if bw:
-            c_channels = 1
-        else:
-            c_channels = 3
-        self.observation_in = tf.placeholder(shape=[None, o_size_h, o_size_w, c_channels],
-                                             dtype=tf.float32,
-                                             name='observation_0')
-        streams = []
-        for _ in range(num_streams):
-            self.conv1 = tf.layers.conv2d(self.observation_in, 16,
-                                          kernel_size=[8, 8],
-                                          strides=[4, 4],
-                                          use_bias=False,
-                                          activation=activation)
-            self.conv2 = tf.layers.conv2d(self.conv1, 32,
-                                          kernel_size=[4, 4],
-                                          strides=[2, 2],
-                                          use_bias=False,
-                                          activation=activation)
-            hidden = c_layers.flatten(self.conv2)
-            for _ in range(num_layers):
-                hidden = tf.layers.dense(hidden, h_size, use_bias=False, activation=activation)
-            streams.append(hidden)
-        return streams
 
     def _create_continuous_state_encoder(self, s_size, h_size, num_streams, activation, num_layers):
         """
@@ -184,6 +131,13 @@ class PPOModel:
             streams.append(hidden)
         return streams
 
+    def _create_global_steps(self):
+        """
+        Creates TF ops to track and increment global training step.
+        """
+        self.global_step = tf.Variable(0, name='global_step', trainable=False, dtype=tf.int32)
+        self.increment_step = tf.assign(self.global_step, tf.cast(self.global_step, tf.int32) + 1)
+
     def _create_ppo_optimizer(self, probs, old_probs, value, entropy, beta, epsilon, lr, max_step):
         """
         Creates training-specific Tensorflow ops for PPO models.
@@ -214,6 +168,51 @@ class PPOModel:
         self.learning_rate = tf.train.polynomial_decay(lr, self.global_step, max_step, 1e-10, power=1.0)
         optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
         self.update_batch = optimizer.minimize(self.loss)
+
+    def _create_reward_encoder(self):
+        """
+        Creates TF ops to track and increment recent average cumulative reward.
+        """
+        self.last_reward = tf.Variable(0, name='last_reward', trainable=False, dtype=tf.float32)
+        self.new_reward = tf.placeholder(shape=[], dtype=tf.float32, name='new_reward')
+        self.update_reward = tf.assign(self.last_reward, self.new_reward)
+
+    def _create_visual_encoder(self, o_size_h, o_size_w, bw, h_size, num_streams, activation, num_layers):
+        """
+        Builds a set of visual (CNN) encoders.
+
+        :param o_size_h: Height observation size.
+        :param o_size_w: Width observation size.
+        :param bw: Whether image is greyscale {True} or color {False}.
+        :param h_size: Hidden layer size.
+        :param num_streams: Number of visual streams to construct.
+        :param activation: What type of activation function to use for layers.
+        :return: List of hidden layer tensors.
+        """
+        if bw:
+            c_channels = 1
+        else:
+            c_channels = 3
+        self.observation_in = tf.placeholder(shape=[None, o_size_h, o_size_w, c_channels],
+                                             dtype=tf.float32,
+                                             name='observation_0')
+        streams = []
+        for _ in range(num_streams):
+            self.conv1 = tf.layers.conv2d(self.observation_in, 16,
+                                          kernel_size=[8, 8],
+                                          strides=[4, 4],
+                                          use_bias=False,
+                                          activation=activation)
+            self.conv2 = tf.layers.conv2d(self.conv1, 32,
+                                          kernel_size=[4, 4],
+                                          strides=[2, 2],
+                                          use_bias=False,
+                                          activation=activation)
+            hidden = c_layers.flatten(self.conv2)
+            for _ in range(num_layers):
+                hidden = tf.layers.dense(hidden, h_size, use_bias=False, activation=activation)
+            streams.append(hidden)
+        return streams
 
 class ContinuousControlModel(PPOModel):
 
@@ -256,7 +255,10 @@ class ContinuousControlModel(PPOModel):
                                   activation=None,
                                   use_bias=False,
                                   kernel_initializer=c_layers.variance_scaling_initializer(factor=0.01))
-        self.log_sigma_sq = tf.get_variable('log_sigma_squared', [a_size], dtype=tf.float32,initializer=tf.zeros_initializer())
+        self.log_sigma_sq = tf.get_variable('log_sigma_squared',
+                                            [a_size],
+                                            dtype=tf.float32,
+                                            initializer=tf.zeros_initializer())
         self.sigma_sq = tf.exp(self.log_sigma_sq)
         self.epsilon = tf.placeholder(shape=[None, a_size], dtype=tf.float32, name='epsilon')
         self.output = self.mu + tf.sqrt(self.sigma_sq) * self.epsilon
