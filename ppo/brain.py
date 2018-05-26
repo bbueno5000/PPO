@@ -28,12 +28,9 @@ class BrainParameters:
         self.state_space_type = brain_param['stateSpaceType']
 
     def __str__(self):
-        return '''Unity brain name: {0}
-        State space type: {1}
-        State space size (per agent): {2}
-        Action space type: {3}
-        Action space size (per agent): {4}'''.format(self.brain_name,
-                                                     self.state_space_type,
-                                                     str(self.state_space_size),
-                                                     self.action_space_type,
-                                                     str(self.action_space_size))
+        params = {'action space size (per agent)': str(self.action_space_size),
+                  'action space type': self.action_space_type,
+                  'state space size (per agent)': str(self.state_space_size),
+                  'state space type': self.state_space_type,
+                  'unity brain name': self.brain_name}
+        return str(params)

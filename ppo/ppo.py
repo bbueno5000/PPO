@@ -10,7 +10,7 @@ import logging
 import models as ppo_models
 import numpy as np
 import os
-import render_thread as ppo_thread
+import renderthread as ppo_thread
 import shutil
 import tensorflow as tf
 import time
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # How many model checkpoints to keep [default: 5]
     keep_checkpoints = 5
     # Whether to load the model or randomly initialize [default: False]
-    load_model = True
+    load_model = False
     # The sub-directory name for model and summary statistics
     model_path = os.path.join(DIR_NAME, 'models\\v2')
     # save recordings of episodes
@@ -60,8 +60,6 @@ if __name__ == '__main__':
     render = True
     # Frequency at which to save training statistics [default: 10000]
     summary_freq = buffer_size * 5
-    # The sub-directory name for model and summary statistics
-    summary_path = os.path.join(DIR_NAME, 'ppo_summary')
     # Frequency at which to save model [default: 50000]
     save_freq = summary_freq
     # Whether to train model, or only run inference [default: False]
@@ -84,12 +82,8 @@ if __name__ == '__main__':
     is_continuous = env.brains[brain_name].action_space_type == 'continuous'
     use_observations = False
     use_states = True
-    if not load_model:
-        shutil.rmtree(summary_path, ignore_errors=True)
     if not os.path.exists(model_path):
         os.makedirs(model_path)
-    if not os.path.exists(summary_path):
-        os.makedirs(summary_path)
     tf.set_random_seed(np.random.randint(1024))
     init = tf.global_variables_initializer()
     saver = tf.train.Saver(max_to_keep=keep_checkpoints)
@@ -104,7 +98,7 @@ if __name__ == '__main__':
         else:
             sess.run(init)
         steps, last_reward = sess.run([ppo_model.global_step, ppo_model.last_reward])
-        summary_writer = tf.summary.FileWriter(summary_path)
+        summary_writer = tf.summary.FileWriter(model_path)
         info = env.reset()[brain_name]
         trainer = ppo_tnr.Trainer(ppo_model, sess, info, is_continuous, use_observations, use_states, train_model)
         trainer_monitor = ppo_tnr.Trainer(ppo_model, sess, info, is_continuous, use_observations, use_states, False)
@@ -119,6 +113,15 @@ if __name__ == '__main__':
                 trainer.process_experiences(info, time_horizon, gamma, lambd)
             else:
                 time.sleep(1)
+            if not render_started and render:
+                renderthread = ppo_thread.RenderThread(sess,
+                                                       trainer_monitor,
+                                                       env_render,
+                                                       brain_name,
+                                                       normalize_steps,
+                                                       fps)
+                renderthread.start()
+                render_started = True
             if len(trainer.training_buffer['actions']) > buffer_size and train_model:
                 if render:
                     renderthread.pause()
@@ -131,10 +134,8 @@ if __name__ == '__main__':
                 if render:
                     renderthread.resume()
             if steps % summary_freq == 0 and steps != 0 and train_model:
-                # write training statistics to tensorboard.
                 trainer.write_summary(summary_writer, steps)
             if steps % save_freq == 0 and steps != 0 and train_model:
-                # save Tensorflow model
                 ppo_models.save_model(sess, saver, model_path, steps)
             if train_model:
                 steps += 1
@@ -143,15 +144,6 @@ if __name__ == '__main__':
                     mean_reward = np.mean(trainer.stats['cumulative_reward'])
                     sess.run(ppo_model.update_reward, feed_dict={ppo_model.new_reward: mean_reward})
                     last_reward = sess.run(ppo_model.last_reward)
-            if not render_started and render:
-                renderthread = ppo_thread.RenderThread(sess,
-                                                       trainer_monitor,
-                                                       env_render,
-                                                       brain_name,
-                                                       normalize_steps,
-                                                       fps)
-                renderthread.start()
-                render_started = True
         # final save Tensorflow model
         if steps != 0 and train_model:
             ppo_models.save_model(sess, saver, model_path, steps)

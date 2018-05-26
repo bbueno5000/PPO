@@ -11,7 +11,7 @@ class GymEnvironment:
 
     def __init__(self, env_name, log_path, render=False, skip_frames=1, record=False):
         atexit.register(self.close)
-        self._academy_name = 'Gym Environment'
+        self._academy_name = 'VerticalLandingAcademy'
         self._current_returns = {}
         self._last_action = []
         self.render = render
@@ -23,7 +23,7 @@ class GymEnvironment:
             # self.env = frameskip_wrapper(self.env)
             self.env = self.env
         if record:
-            self.env = gym.wrappers.Monitor(self.env, 'video', lambda x: x % 1 == 0)
+            self.env = gym.wrappers.Monitor(self.env, 'video\\v2', lambda x: x % 1 == 0)
         ob_space = self.env.observation_space
         ac_space = self.env.action_space
         if isinstance(ac_space, gym.spaces.Box):
@@ -59,13 +59,12 @@ class GymEnvironment:
         logger.info('environment started successfully.')
 
     def __str__(self):
-        return '''Academy name: {0}
-        Actions:
-        \tSize: {1},\tType: {2}
-        States:
-        \tSize: {3},\tType: {4}'''.format(self._academy_name,
-                                          self.ac_space_size, self.ac_space_type,
-                                          self.ob_space_size, self.ob_space_type)
+        params = {'academy_name': self._academy_name,
+                  'action_space_size': self.ac_space_size,
+                  'action_space_type': self.ac_space_type,
+                  'obs_space_size': self.ob_space_size,
+                  'obs_space_type': self.ob_space_type}
+        return str(params)
 
     def _state_to_info(self):
         state = np.array(self._current_returns[self._brain_names[0]][0])
@@ -86,12 +85,12 @@ class GymEnvironment:
         return self._academy_name
 
     @property
-    def brains(self):
-        return self._brains
-
-    @property
     def brain_names(self):
         return self._brain_names
+
+    @property
+    def brains(self):
+        return self._brains
 
     def close(self):
         """

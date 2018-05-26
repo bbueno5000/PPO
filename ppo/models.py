@@ -36,7 +36,7 @@ def export_graph(model_path, env_name='env', target_nodes='action, value_estimat
     :param target_nodes: Comma separated string of needed output nodes for embedded graph.
     """
     ckpt = tf.train.get_checkpoint_state(model_path)
-    freeze_graph.freeze_graph(input_graph=os.path.join(model_path, 'raw_graph_def.pb'),
+    freeze_graph.freeze_graph(input_graph=os.path.join(model_path, 'graph.pbtxt'),
                               input_binary=True,
                               input_checkpoint=ckpt.model_checkpoint_path,    # pylint:disable=E1101
                               output_node_names=target_nodes,
@@ -56,9 +56,9 @@ def save_model(sess, saver, model_path='.\\', steps=0):
     :param steps: Current number of steps in training process.
     :param saver: Tensorflow saver for session.
     """
-    last_checkpoint = os.path.join(model_path, 'model-', str(steps), '.cptk')
+    last_checkpoint = os.path.join(model_path, 'model', '.cptk-', str(steps))
     saver.save(sess, last_checkpoint)
-    tf.train.write_graph(sess.graph_def, model_path, 'raw_graph_def.pb', as_text=False)
+    tf.train.write_graph(sess.graph_def, model_path, 'graph.pbtxt', as_text=False)
     logging.info('model:saved')
 
 class PPOModel:
@@ -93,7 +93,8 @@ class PPOModel:
                                                          trainable=False,
                                                          dtype=tf.float32,
                                                          initializer=tf.ones_initializer())
-            self.normalized_state = tf.clip_by_value((self.state_in - self.running_mean) / tf.sqrt(self.norm_running_variance), -5, 5, name='normalized_state')
+            self.normalized_state = tf.clip_by_value(
+                (self.state_in - self.running_mean) / tf.sqrt(self.norm_running_variance), -5, 5, name='normalized_state')
             self.new_mean = tf.placeholder(shape=[s_size], dtype=tf.float32, name='new_mean')
             self.new_variance = tf.placeholder(shape=[s_size], dtype=tf.float32, name='new_variance')
             self.update_mean = tf.assign(self.running_mean, self.new_mean)
@@ -151,13 +152,12 @@ class PPOModel:
         :param lr: Learning rate
         :param max_step: Total number of training steps.
         """
-        self.returns_holder = tf.placeholder(shape=[None], dtype=tf.float32, name='discounted_rewards')
-        self.advantage = tf.placeholder(shape=[None, 1], dtype=tf.float32, name='advantages')
+        self.returns_holder = tf.placeholder(tf.float32, shape=[None], name='discounted_rewards')
+        self.advantage = tf.placeholder(tf.float32, shape=[None, 1], name='advantages')
         decay_epsilon = tf.train.polynomial_decay(epsilon,
                                                   self.global_step,
-                                                  max_step,
-                                                  1e-2,
-                                                  power=1.0)
+                                                  decay_steps=max_step,
+                                                  end_learning_rate=1e-2)
         r_theta = probs / (old_probs + 1e-10)
         p_opt_a = r_theta * self.advantage
         p_opt_b = tf.clip_by_value(r_theta, 1 - decay_epsilon, 1 + decay_epsilon) * self.advantage
