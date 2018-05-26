@@ -5,7 +5,7 @@ import gym_vertical_landing
 import logging
 import numpy as np
 
-logger = logging.getLogger('environment')
+logger = logging.getLogger('unityagents')
 
 class GymEnvironment:
 

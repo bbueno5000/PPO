@@ -32,4 +32,4 @@ class BrainParameters:
                     'action space type': self.action_space_type,
                     'state space size (per agent)': str(self.state_space_size),
                     'state space type': self.state_space_type,
-                    'unity brain name': self.brain_name})
+                    'brain name': self.brain_name})

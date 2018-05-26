@@ -5,7 +5,7 @@ import os
 import tensorflow as tf
 import tensorflow.python.tools.freeze_graph as freeze_graph
 
-def create_agent_model(env, lr=1e-4, h_size=128, epsilon=0.2, beta=1e-3, max_step=5e6, normalize=0, num_layers=2):
+def create_agent_model(env, beta=1e-3, epsilon=0.2, h_size=128, lr=1e-4, max_step=5e6, num_layers=2, normalize=0):
     """
     Takes a OpenAI Gym environment and model-specific hyper-parameters
     and returns the appropriate PPO agent model for the environment.

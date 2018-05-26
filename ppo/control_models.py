@@ -6,7 +6,7 @@ import tensorflow.contrib.layers as c_layers
 
 class ContinuousControlModel(ppo_model.PPOModel):
 
-    def __init__(self, lr, brain, h_size, epsilon, max_step, normalize, num_layers):
+    def __init__(self, brain, epsilon, h_size, lr, max_step, num_layers, normalize):
         """
         Creates Continuous Control Actor-Critic model.
 
@@ -67,7 +67,7 @@ class ContinuousControlModel(ppo_model.PPOModel):
 
 class DiscreteControlModel(ppo_model.PPOModel):
 
-    def __init__(self, lr, brain, h_size, epsilon, beta, max_step, normalize, num_layers):
+    def __init__(self, brain, epsilon, h_size, lr, max_step, num_layers, normalize):
         """
         Creates Discrete Control Actor-Critic model.
 

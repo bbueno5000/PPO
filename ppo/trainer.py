@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-import history as ppo_hist
+import history_utils as ppo_hist
 import tensorflow as tf
 
 class Trainer:
@@ -98,11 +98,11 @@ class Trainer:
                             feed_dict[self.model.state_in] = info.states
                         value_next = self.sess.run(self.model.value, feed_dict)[l]
                     history = ppo_hist.vectorize_history(self.history_dict[info.agents[l]])
-                    history['advantages'] = ppo_hist.get_gae(rewards=history['rewards'],
-                                                             value_estimates=history['value_estimates'],
-                                                             value_next=value_next,
-                                                             gamma=gamma,
-                                                             lambd=lambd)
+                    history['advantages'] = ppo_hist.get_gae(history['rewards'],
+                                                             history['value_estimates'],
+                                                             gamma,
+                                                             lambd,
+                                                             value_next)
                     history['discounted_returns'] = history['advantages'] + history['value_estimates']
                     if len(self.training_buffer['actions']) > 0:
                         ppo_hist.append_history(global_buffer=self.training_buffer, local_buffer=history)
@@ -152,7 +152,7 @@ class Trainer:
         new_variance = var + (current_x - new_mean) * (current_x - mean)
         return new_mean, new_variance
 
-    def take_action(self, info, env, brain_name, steps, normalize, stochastic=True):
+    def take_action(self, info, env, brain_name, normalize, steps, stochastic=True):
         """
         Decides actions given state/observation information, and takes them in environment.
 
