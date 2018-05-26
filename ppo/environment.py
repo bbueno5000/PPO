@@ -5,7 +5,6 @@ import gym_vertical_landing
 import logging
 import numpy as np
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('unityagents')
 
 class GymEnvironment:
@@ -24,17 +23,16 @@ class GymEnvironment:
             # self.env = frameskip_wrapper(self.env)
             self.env = self.env
         if record:
-            self.env = gym.wrappers.Monitor(self.env, '.\\video', lambda x: x % 1 == 0)
+            self.env = gym.wrappers.Monitor(self.env, 'video', lambda x: x % 1 == 0)
         ob_space = self.env.observation_space
         ac_space = self.env.action_space
         if isinstance(ac_space, gym.spaces.Box):
             assert len(ac_space.shape) == 1
-            self.ac_space_type = "continuous"
+            self.ac_space_type = 'continuous'
             self.ac_space_size = ac_space.shape[0]
         elif isinstance(ac_space, gym.spaces.Discrete):
-            self.ac_space_type = "discrete"
+            self.ac_space_type = 'discrete'
             self.ac_space_size = ac_space.n
-
         else:
             raise NotImplementedError
         if isinstance(ob_space, gym.spaces.Box):
@@ -58,7 +56,7 @@ class GymEnvironment:
                             'stateSpaceType': self.ob_space_type}
         self._brains[self._brain_names[0]] = brain.BrainParameters(self._brain_names[0], self._parameters)
         self._loaded = True
-        logger.info('Environment started successfully.')
+        logger.info('environment started successfully.')
 
     def __str__(self):
         return '''Academy name: {0}
@@ -115,7 +113,7 @@ class GymEnvironment:
 
     def reset(self):
         """
-        Sends a signal to reset the unity environment.
+        Sends a signal to reset the environment.
 
         :return: A Data structure corresponding to the initial reset state of the environment.
         """
@@ -123,7 +121,6 @@ class GymEnvironment:
         self._current_returns = {self._brain_names[0]: [obs, 0, False]}
         self._last_action = [0] * self.ac_space_size if self.ac_space_type == 'continuous' else 0
         self._global_done = False
-
         return self._state_to_info()
 
     def step(self, action=None):

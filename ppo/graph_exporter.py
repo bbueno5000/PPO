@@ -36,11 +36,11 @@ if __name__ == '__main__':
     plt.ylabel('frames')
     plt.title('episode length')
     ani = animation.FuncAnimation(fig,
-                                update,
-                                repeat=False,
-                                frames=(len(steplist) - 1) * 10,
-                                init_func=init,
-                                blit=True,
-                                interval=1 / 60 * 1000)
+                                  update,
+                                  repeat=False,
+                                  frames=(len(steplist) - 1) * 10,
+                                  init_func=init,
+                                  blit=True,
+                                  interval=1 / 60 * 1000)
     ani.save('episode_length.mp4', dpi=120, writer='ffmpeg')
     plt.show()

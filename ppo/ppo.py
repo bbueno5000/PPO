@@ -16,6 +16,8 @@ import tensorflow as tf
 import time
 import trainer as ppo_tnr
 
+logging.basicConfig(level=logging.INFO)
+
 if __name__ == '__main__':
     DIR_NAME = os.getcwd()
     # ALGORITHM PARAMETERS
@@ -51,7 +53,7 @@ if __name__ == '__main__':
     # Whether to load the model or randomly initialize [default: False]
     load_model = True
     # The sub-directory name for model and summary statistics
-    model_path = os.path.join(DIR_NAME, 'models\\working')
+    model_path = os.path.join(DIR_NAME, 'models\\v2')
     # save recordings of episodes
     record = True
     # render environment to display progress
