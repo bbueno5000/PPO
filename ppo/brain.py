@@ -1,9 +1,8 @@
 class BrainInfo:
-
-    def __init__(self, state, memory=None, reward=None, agents=None, local_done=None, action=None):
-        """
-        Describes experience at current step of all agents linked to a brain.
-        """
+    """
+    Describes experience at current step of all agents linked to a brain.
+    """
+    def __init__(self, state, action=None, agents=None, local_done=None, memory=None, reward=None):
         self.agents = agents
         self.local_done = local_done
         self.memories = memory
@@ -12,14 +11,15 @@ class BrainInfo:
         self.states = state
 
 class BrainParameters:
+    """
+    Contains all brain-specific parameters.
 
+    brain_name:
+        Name of brain.
+    brain_param:
+        Dictionary of brain parameters.
+    """
     def __init__(self, brain_name, brain_param):
-        """
-        Contains all brain-specific parameters.
-
-        :param brain_name: Name of brain.
-        :param brain_param: Dictionary of brain parameters.
-        """
         self.action_space_size = brain_param['actionSize']
         self.action_space_type = brain_param['actionSpaceType']
         self.brain_name = brain_name
@@ -28,9 +28,8 @@ class BrainParameters:
         self.state_space_type = brain_param['stateSpaceType']
 
     def __str__(self):
-        params = {'action space size (per agent)': str(self.action_space_size),
-                  'action space type': self.action_space_type,
-                  'state space size (per agent)': str(self.state_space_size),
-                  'state space type': self.state_space_type,
-                  'unity brain name': self.brain_name}
-        return str(params)
+        return str({'action space size (per agent)': str(self.action_space_size),
+                    'action space type': self.action_space_type,
+                    'state space size (per agent)': str(self.state_space_size),
+                    'state space type': self.state_space_type,
+                    'unity brain name': self.brain_name})

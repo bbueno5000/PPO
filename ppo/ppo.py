@@ -7,11 +7,10 @@ Contains an implementation of PPO as described here: https://arxiv.org/abs/1707.
 """
 import environment as environ
 import logging
-import models as ppo_models
+import model_utils
 import numpy as np
 import os
 import renderthread as ppo_thread
-import shutil
 import tensorflow as tf
 import time
 import trainer as ppo_tnr
@@ -54,8 +53,6 @@ if __name__ == '__main__':
     load_model = False
     # The sub-directory name for model and summary statistics
     model_path = os.path.join(DIR_NAME, 'models\\v2')
-    # save recordings of episodes
-    record = True
     # render environment to display progress
     render = True
     # Frequency at which to save training statistics [default: 10000]
@@ -66,19 +63,19 @@ if __name__ == '__main__':
     train_model = False
     env_name = 'VerticalLanding-v0'
     env = environ.GymEnvironment(env_name, log_path='ppo_log', skip_frames=6)
-    env_render = environ.GymEnvironment(env_name, log_path='ppo_log_render', render=True, record=record)
+    env_render = environ.GymEnvironment(env_name, log_path='ppo_log_render', record=True, render=render)
     fps = env_render.env.metadata.get('video.frames_per_second', 30)
     logging.info(str(env))
     brain_name = env.external_brain_names[0]
     tf.reset_default_graph()
-    ppo_model = ppo_models.create_agent_model(env,
-                                              learning_rate,
-                                              hidden_units,
-                                              epsilon,
-                                              beta,
-                                              max_steps,
-                                              normalize_steps,
-                                              num_layers)
+    ppo_model = model_utils.create_agent_model(env,
+                                               learning_rate,
+                                               hidden_units,
+                                               epsilon,
+                                               beta,
+                                               max_steps,
+                                               normalize_steps,
+                                               num_layers)
     is_continuous = env.brains[brain_name].action_space_type == 'continuous'
     use_observations = False
     use_states = True
@@ -107,12 +104,6 @@ if __name__ == '__main__':
             if env.global_done:
                 info = env.reset()[brain_name]
                 trainer.reset_buffers(info, total=True)
-            # decide and take an action
-            if train_model:
-                info = trainer.take_action(info, env, brain_name, steps, normalize_steps)
-                trainer.process_experiences(info, time_horizon, gamma, lambd)
-            else:
-                time.sleep(1)
             if not render_started and render:
                 renderthread = ppo_thread.RenderThread(sess,
                                                        trainer_monitor,
@@ -122,6 +113,12 @@ if __name__ == '__main__':
                                                        fps)
                 renderthread.start()
                 render_started = True
+            # decide and take an action
+            if train_model:
+                info = trainer.take_action(info, env, brain_name, steps, normalize_steps)
+                trainer.process_experiences(info, time_horizon, gamma, lambd)
+            else:
+                time.sleep(1)
             if len(trainer.training_buffer['actions']) > buffer_size and train_model:
                 if render:
                     renderthread.pause()
@@ -136,7 +133,7 @@ if __name__ == '__main__':
             if steps % summary_freq == 0 and steps != 0 and train_model:
                 trainer.write_summary(summary_writer, steps)
             if steps % save_freq == 0 and steps != 0 and train_model:
-                ppo_models.save_model(sess, saver, model_path, steps)
+                model_utils.save_model(sess, saver, model_path, steps)
             if train_model:
                 steps += 1
                 sess.run(ppo_model.increment_step)
@@ -146,7 +143,7 @@ if __name__ == '__main__':
                     last_reward = sess.run(ppo_model.last_reward)
         # final save Tensorflow model
         if steps != 0 and train_model:
-            ppo_models.save_model(sess, saver, model_path, steps)
+            model_utils.save_model(sess, saver, model_path, steps)
     env.close()
-    ppo_models.export_graph(model_path, env_name)
+    model_utils.export_graph(model_path, env_name)
     os.system('shutdown')

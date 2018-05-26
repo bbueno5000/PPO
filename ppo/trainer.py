@@ -9,11 +9,16 @@ class Trainer:
         """
         Responsible for collecting experiences and training PPO model.
 
-        :param ppo_model: Tensorflow graph defining model.
-        :param sess: Tensorflow session.
-        :param info: Environment BrainInfo object.
-        :param is_continuous: Whether action-space is continuous.
-        :param use_observations: Whether agent takes image observations.
+        info:
+            Environment BrainInfo object.
+        is_continuous:
+            Whether action-space is continuous.
+        ppo_model:
+            Tensorflow graph defining model.
+        sess:
+            Tensorflow session.
+        use_observations:
+            Whether agent takes image observations.
         """
         self.history_dict = ppo_hist.history_keys
         self.is_continuous = is_continuous
@@ -36,12 +41,18 @@ class Trainer:
         """
         Adds experiences to each agent's experience history.
 
-        :param info: Current BrainInfo.
-        :param next_info: Next BrainInfo.
-        :param epsi: Epsilon value (for continuous control)
-        :param actions: Chosen actions.
-        :param a_dist: Action probabilities.
-        :param value: Value estimates.
+        a_dist:
+            Action probabilities.
+        actions:
+            Chosen actions.
+        epsi:
+            Epsilon value (for continuous control)
+        info:
+            Current BrainInfo.
+        next_info:
+            Next BrainInfo.
+        value:
+            Value estimates.
         """
         for (agent, history) in self.history_dict.items():
             if agent in info.agents:
@@ -65,10 +76,14 @@ class Trainer:
         Checks agent histories for processing condition, and processes them as necessary.
         Processing involves calculating value and advantage targets for model updating step.
 
-        :param info: Current BrainInfo
-        :param time_horizon: Max steps for individual agent history before processing.
-        :param gamma: Discount factor.
-        :param lambd: GAE factor.
+        gamma:
+            Discount factor.
+        info:
+            Current BrainInfo
+        lambd:
+            GAE factor.
+        time_horizon:
+            Max steps for individual agent history before processing.
         """
         for l in range(len(info.agents)):
             if (info.local_done[l] or len(self.history_dict[info.agents[l]]['actions']) > time_horizon):
@@ -104,8 +119,10 @@ class Trainer:
         """
         Resets either all training buffers or local training buffers
 
-        :param brain_info: The BrainInfo object containing agent ids.
-        :param total: Whether to completely clear buffer.
+        brain_info:
+            The BrainInfo object containing agent ids.
+        total:
+            Whether to completely clear buffer.
         """
         if not total:
             for key in self.history_dict:
@@ -117,11 +134,17 @@ class Trainer:
         """
         Computes new running mean and variances.
 
-        :param data: New piece of data.
-        :param steps: Total number of data so far.
-        :param running_mean: TF op corresponding to stored running mean.
-        :param running_variance: TF op corresponding to stored running variance.
-        :return: New mean and variance values.
+        data:
+            New piece of data.
+        running_mean:
+            TF op corresponding to stored running mean.
+        running_variance:
+            TF op corresponding to stored running variance.
+        steps:
+            Total number of data so far.
+
+        return:
+            New mean and variance values.
         """
         mean, var = self.sess.run([running_mean, running_variance])
         current_x = np.mean(data, axis=0)
@@ -133,11 +156,17 @@ class Trainer:
         """
         Decides actions given state/observation information, and takes them in environment.
 
-        :param info: Current BrainInfo from environment.
-        :param env: Environment to take actions in.
-        :param brain_name: Name of brain we are learning model for.
-        :param stochastic: Whether to do any exploration.
-        :return: BrainInfo corresponding to new environment state.
+        brain_name:
+            Name of brain we are learning model for.
+        env:
+            Environment to take actions in.
+        info:
+            Current BrainInfo from environment.
+        stochastic:
+            Whether to do any exploration.
+
+        return:
+            BrainInfo corresponding to new environment state.
         """
         epsi = None
         feed_dict = {self.model.batch_size: len(info.states)}
@@ -179,8 +208,10 @@ class Trainer:
         """
         Uses training_buffer to update model.
 
-        :param batch_size: Size of each mini-batch update.
-        :param num_epoch: How many passes through data to update model for.
+        batch_size:
+            Size of each mini-batch update.
+        num_epoch:
+            How many passes through data to update model for.
         """
         total_v, total_p = 0, 0
         advantages = self.training_buffer['advantages']
@@ -215,8 +246,10 @@ class Trainer:
         """
         Saves training statistics to Tensorboard.
 
-        :param summary_writer: writer associated with Tensorflow session.
-        :param steps: Number of environment steps in training process.
+        steps:
+            Number of environment steps in training process.
+        summary_writer:
+            writer associated with Tensorflow session.
         """
         if len(self.stats['cumulative_reward']) > 0:
             mean_reward = np.mean(self.stats['cumulative_reward'])
@@ -237,10 +270,15 @@ class Trainer:
 
         Note: Only works on tensorflow r1.2 or above.
 
-        :param summary_writer: writer associated with Tensorflow session.
-        :param key: The name of the text.
-        :param input_dict: A dictionary that will be displayed in a table on Tensorboard.
-        :param steps: Number of environment steps in training process.
+        input_dict:
+            A dictionary that will be displayed in a table
+            on Tensorboard.
+        key:
+            The name of the text.
+        steps:
+            Number of environment steps in training process.
+        summary_writer:
+            writer associated with Tensorflow session.
         """
         try:
             s_op = tf.summary.text(key, tf.convert_to_tensor(([[str(x), str(input_dict[x])] for x in input_dict])))

@@ -5,11 +5,11 @@ import gym_vertical_landing
 import logging
 import numpy as np
 
-logger = logging.getLogger('unityagents')
+logger = logging.getLogger('environment')
 
 class GymEnvironment:
 
-    def __init__(self, env_name, log_path, render=False, skip_frames=1, record=False):
+    def __init__(self, env_name, log_path, record=False, render=False, skip_frames=1):
         atexit.register(self.close)
         self._academy_name = 'VerticalLandingAcademy'
         self._current_returns = {}
@@ -23,7 +23,10 @@ class GymEnvironment:
             # self.env = frameskip_wrapper(self.env)
             self.env = self.env
         if record:
-            self.env = gym.wrappers.Monitor(self.env, 'video\\v2', lambda x: x % 1 == 0)
+            self.env = gym.wrappers.Monitor(self.env,
+                                            directory='video\\v2',
+                                            force=True,
+                                            video_callable=lambda x: x % 1 == 0)
         ob_space = self.env.observation_space
         ac_space = self.env.action_space
         if isinstance(ac_space, gym.spaces.Box):
@@ -59,12 +62,11 @@ class GymEnvironment:
         logger.info('environment started successfully.')
 
     def __str__(self):
-        params = {'academy_name': self._academy_name,
-                  'action_space_size': self.ac_space_size,
-                  'action_space_type': self.ac_space_type,
-                  'obs_space_size': self.ob_space_size,
-                  'obs_space_type': self.ob_space_type}
-        return str(params)
+        return str({'academy_name': self._academy_name,
+                    'action_space_size': self.ac_space_size,
+                    'action_space_type': self.ac_space_type,
+                    'obs_space_size': self.ob_space_size,
+                    'obs_space_type': self.ob_space_type})
 
     def _state_to_info(self):
         state = np.array(self._current_returns[self._brain_names[0]][0])
@@ -77,7 +79,7 @@ class GymEnvironment:
         agents = [self._brain_names[0]]
         dones = [self._current_returns[self._brain_names[0]][2]]
         actions = self._last_action
-        self._data[self._brain_names[0]] = brain.BrainInfo(states, memories, rewards, agents, dones, actions)
+        self._data[self._brain_names[0]] = brain.BrainInfo(states, actions, agents, dones, memories, rewards)
         return self._data
 
     @property
@@ -114,7 +116,9 @@ class GymEnvironment:
         """
         Sends a signal to reset the environment.
 
-        :return: A Data structure corresponding to the initial reset state of the environment.
+        return:
+            Data structure corresponding to the
+            initial reset state of the environment.
         """
         obs = self.env.reset()
         self._current_returns = {self._brain_names[0]: [obs, 0, False]}
@@ -127,8 +131,12 @@ class GymEnvironment:
         Provides the environment with an action, moves the environment dynamics forward accordingly,
         and returns observation, state, and reward information to the agent.
 
-        :param action: Agent's action to send to environment. Can be a scalar or vector of int/floats.
-        :return: A Data structure corresponding to the new state of the environment.
+        action:
+            Agent's action to send to environment.
+            Can be a scalar or vector of int/floats.
+        return:
+            A Data structure corresponding to the new state of the
+            environment.
         """
         action = {} if action is None else action
         if self._loaded and not self._global_done and self._global_done is not None:
