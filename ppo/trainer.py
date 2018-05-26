@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-import ppo.history as ppo_hist
+import history as ppo_hist
 import tensorflow as tf
 
 class Trainer:
