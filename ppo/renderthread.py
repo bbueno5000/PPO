@@ -45,4 +45,4 @@ class RenderThread(threading.Thread):
                         done = info.local_done[0]
                         time.sleep(max(0, 1 / self.fps - (time.time() - t_s)))
                     # pickle.dump(recoding, open('observation.pkl', "wb"))
-                time.sleep(seconds=0.1)
+                time.sleep(0.1)
