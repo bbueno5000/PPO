@@ -16,6 +16,12 @@ Notable changes include:
 
 [environment_setup.md](docs\environment_setup.md) contains instructions for getting started.
 
+## Run Program
+
+```
+python main.py
+```
+
 ## Best Practices
 
 [best_practices.md](docs\best_practices.md) contains guidelines for implementing PPO.
