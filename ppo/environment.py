@@ -4,12 +4,20 @@ import gym
 import gym_vertical_landing
 import logging
 import numpy as np
+import os
 
 logger = logging.getLogger(__name__)
 
 class GymEnvironment:
 
-    def __init__(self, env_name, log_path, record=False, render=False, skip_frames=1):
+    def __init__(self,
+                 dir_path,
+                 env_name,
+                 log_path,
+                 model_name,
+                 record=False,
+                 render=False,
+                 skip_frames=1):
         atexit.register(self.close)
         self._academy_name = 'VerticalLandingAcademy'
         self._current_returns = {}
@@ -24,7 +32,7 @@ class GymEnvironment:
             self.env = self.env
         if record:
             self.env = gym.wrappers.Monitor(self.env,
-                                            directory='video\\v2',
+                                            directory=os.path.join(dir_path, 'video', model_name),
                                             force=True,
                                             video_callable=lambda x: x % 1 == 0)
         ob_space = self.env.observation_space
