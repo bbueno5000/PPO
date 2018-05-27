@@ -5,16 +5,15 @@ import tensorflow as tf
 import tensorflow.contrib.layers as c_layers
 
 class ContinuousControlModel(ppo_model.PPOModel):
+    """
+    Creates Continuous Control Actor-Critic model.
 
-    def __init__(self, brain, epsilon, h_size, lr, max_step, num_layers, normalize):
-        """
-        Creates Continuous Control Actor-Critic model.
-
-        brain:
-            State-space size
-        h_size:
-            Hidden layer size
-        """
+    brain:
+        State-space size
+    h_size:
+        Hidden layer size
+    """
+    def __init__(self, brain, epsilon, h_size, lr, max_step, normalize, num_layers):
         super(ContinuousControlModel, self).__init__()
         s_size = brain.state_space_size
         a_size = brain.action_space_size
@@ -66,16 +65,15 @@ class ContinuousControlModel(ppo_model.PPOModel):
         self._create_ppo_optimizer(self.probs, self.old_probs, self.value, self.entropy, 0.0, epsilon, lr, max_step)
 
 class DiscreteControlModel(ppo_model.PPOModel):
+    """
+    Creates Discrete Control Actor-Critic model.
 
-    def __init__(self, brain, epsilon, h_size, lr, max_step, num_layers, normalize):
-        """
-        Creates Discrete Control Actor-Critic model.
-
-        brain:
-            State-space size
-        h_size:
-            Hidden layer size
-        """
+    brain:
+        State-space size
+    h_size:
+        Hidden layer size
+    """
+    def __init__(self, beta, brain, epsilon, h_size, lr, max_step, normalize, num_layers):
         super(DiscreteControlModel, self).__init__()
         self._create_global_steps()
         self._create_reward_encoder()

@@ -6,6 +6,8 @@ import task
 logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
+    DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+    DIR_PATH = os.path.abspath(os.path.join(DIR_PATH, os.pardir))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--batch_size',
                         default=256,
@@ -16,6 +18,9 @@ if __name__ == '__main__':
     parser.add_argument('--buffer-size',
                         default=2.5e-3 * 16,
                         help='How large the experience buffer should be before gradient descent [default: 2048].')
+    parser.add_argument('--dir_path',
+                        default=DIR_PATH,
+                        help='Name of directory.')
     parser.add_argument('--env_name',
                         default='VerticalLanding-v0',
                         help='Name of environment.')
@@ -38,13 +43,13 @@ if __name__ == '__main__':
                         default=1e-4,
                         help='Model learning rate [default: 3e-4].')
     parser.add_argument('--load_model',
-                        default=True,
+                        default=False,
                         help='Whether to load the model or randomly initialize [default: False].')
     parser.add_argument('--max_steps',
                         default=20e6,
                         help='Maximum number of steps to run environment [default: 1e6].')
     parser.add_argument('--model_path',
-                        default=os.path.join(os.getcwd(), 'models'),
+                        default='v2',
                         help='The sub-directory name for model and summary statistics.')
     parser.add_argument('--normalize_steps',
                         default=10e6,
@@ -68,7 +73,7 @@ if __name__ == '__main__':
                         default=2.5e-3 * 5,
                         help='Frequency at which to save training statistics [default: 10000].')
     parser.add_argument('--summary_path',
-                        default='./ppo_summary',
+                        default='models',
                         help='The sub-directory name for model and summary statistics.')
     parser.add_argument('--time_horizon',
                         default=2048,

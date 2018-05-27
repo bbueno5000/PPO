@@ -4,22 +4,22 @@ import history_utils as ppo_hist
 import tensorflow as tf
 
 class Trainer:
+    """
+    Responsible for collecting experiences and training PPO model.
 
+    info:
+        Environment BrainInfo object.
+    is_continuous:
+        Whether action-space is continuous.
+    ppo_model:
+        Tensorflow graph defining model.
+    sess:
+        Tensorflow session.
+    use_observations:
+        Whether agent takes image observations.
+    """
     def __init__(self, ppo_model, sess, info, is_continuous, use_observations, use_states, training):
-        """
-        Responsible for collecting experiences and training PPO model.
 
-        info:
-            Environment BrainInfo object.
-        is_continuous:
-            Whether action-space is continuous.
-        ppo_model:
-            Tensorflow graph defining model.
-        sess:
-            Tensorflow session.
-        use_observations:
-            Whether agent takes image observations.
-        """
         self.history_dict = ppo_hist.history_keys
         self.is_continuous = is_continuous
         self.is_training = training

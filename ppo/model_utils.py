@@ -5,7 +5,14 @@ import os
 import tensorflow as tf
 import tensorflow.python.tools.freeze_graph as freeze_graph
 
-def create_agent_model(env, beta=1e-3, epsilon=0.2, h_size=128, lr=1e-4, max_step=5e6, num_layers=2, normalize=0):
+def create_agent_model(env,
+                       beta=1e-3,
+                       epsilon=0.2,
+                       h_size=128,
+                       lr=1e-4,
+                       max_step=5e6,
+                       normalize=0,
+                       num_layers=2):
     """
     Takes a OpenAI Gym environment and model-specific hyper-parameters
     and returns the appropriate PPO agent model for the environment.
@@ -30,23 +37,22 @@ def create_agent_model(env, beta=1e-3, epsilon=0.2, h_size=128, lr=1e-4, max_ste
         num_layers = 1
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
-    if brain.action_space_type == 'continuous':
-        return control_models.ContinuousControlModel(lr,
-                                                     brain,
-                                                     h_size,
-                                                     epsilon,
-                                                     max_step,
-                                                     normalize,
-                                                     num_layers)
-    else:
-        return control_models.DiscreteControlModel(lr,
+    if brain.action_space_type == 'discrete':
+        return control_models.DiscreteControlModel(beta,
                                                    brain,
-                                                   h_size,
                                                    epsilon,
-                                                   beta,
+                                                   h_size,
+                                                   lr,
                                                    max_step,
                                                    normalize,
                                                    num_layers)
+    return control_models.ContinuousControlModel(brain,
+                                                 epsilon,
+                                                 h_size,
+                                                 lr,
+                                                 max_step,
+                                                 normalize,
+                                                 num_layers)
 
 def export_graph(model_path, env_name='env', target_nodes='action, value_estimate, action_probs'):
     """

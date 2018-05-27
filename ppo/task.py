@@ -16,7 +16,7 @@ import time
 import trainer as ppo_tnr
 
 def ppo(args):
-    model_path = os.path.join(os.getcwd(), 'models', args.model_path)
+    model_path = os.path.join(args.dir_path, 'models', args.model_path)
     env = environ.GymEnvironment(args.env_name, log_path='ppo_log', skip_frames=6)
     env_render = environ.GymEnvironment(args.env_name,
                                         log_path='ppo_log_render',
@@ -27,10 +27,10 @@ def ppo(args):
     brain_name = env.external_brain_names[0]
     tf.reset_default_graph()
     ppo_model = model_utils.create_agent_model(env,
-                                               args.learning_rate,
-                                               args.hidden_units,
-                                               args.epsilon,
                                                args.beta,
+                                               args.epsilon,
+                                               args.hidden_units,
+                                               args.learning_rate,
                                                args.max_steps,
                                                args.normalize_steps,
                                                args.num_layers)
