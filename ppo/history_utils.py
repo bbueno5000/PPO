@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.signal
 
+
 history_keys = ['action_probs',
                 'actions',
                 'advantages',
@@ -10,6 +11,7 @@ history_keys = ['action_probs',
                 'rewards',
                 'states',
                 'value_estimates']
+
 
 def append_history(global_buffer, local_buffer=None):
     """
@@ -25,7 +27,9 @@ def append_history(global_buffer, local_buffer=None):
     """
     for key in history_keys:
         global_buffer[key] = np.concatenate([global_buffer[key], local_buffer[key]], axis=0)
+
     return global_buffer
+
 
 def discount_rewards(r, gamma=0.99, value_next=0.0):
     """
@@ -43,6 +47,7 @@ def discount_rewards(r, gamma=0.99, value_next=0.0):
     """
     return scipy.signal.lfilter([1], [1, -gamma], r[::-1], axis=0)[::-1]
 
+
 def empty_all_history(agent_info):
     """
     Clears all agent histories and resets reward and episode length counters.
@@ -59,7 +64,9 @@ def empty_all_history(agent_info):
         history_dict[agent] = empty_local_history(history_dict[agent])
         history_dict[agent]['cumulative_reward'] = 0
         history_dict[agent]['episode_steps'] = 0
+
     return history_dict
+
 
 def empty_local_history(agent_dict):
     """
@@ -74,7 +81,9 @@ def empty_local_history(agent_dict):
     """
     for key in history_keys:
         agent_dict[key] = []
+
     return agent_dict
+
 
 def get_gae(rewards, value_estimates, gamma=0.99, lambd=0.95, value_next=0.0):
     """
@@ -98,6 +107,7 @@ def get_gae(rewards, value_estimates, gamma=0.99, lambd=0.95, value_next=0.0):
     delta_t = rewards + gamma * value_estimates[1:] - value_estimates[:-1]
     return discount_rewards(r=delta_t, gamma=gamma * lambd)
 
+
 def set_history(global_buffer, local_buffer=None):
     """
     Creates new global_buffer from existing local_buffer
@@ -112,7 +122,9 @@ def set_history(global_buffer, local_buffer=None):
     """
     for key in history_keys:
         global_buffer[key] = np.copy(local_buffer[key])
+
     return global_buffer
+
 
 def shuffle_buffer(global_buffer):
     """
@@ -129,7 +141,9 @@ def shuffle_buffer(global_buffer):
     for key in history_keys:
         if len(global_buffer[key]) > 0:
             global_buffer[key] = global_buffer[key][s]
+
     return global_buffer
+
 
 def vectorize_history(agent_dict):
     """
@@ -143,4 +157,5 @@ def vectorize_history(agent_dict):
     """
     for key in history_keys:
         agent_dict[key] = np.array(agent_dict[key])
+
     return agent_dict

@@ -2,13 +2,22 @@ class BrainInfo:
     """
     Describes experience at current step of all agents linked to a brain.
     """
-    def __init__(self, state, action=None, agents=None, local_done=None, memory=None, reward=None):
+    def __init__(
+        self,
+        state,
+        action=None,
+        agents=None,
+        local_done=None,
+        memory=None,
+        reward=None):
+
         self.agents = agents
         self.local_done = local_done
         self.memories = memory
         self.previous_actions = action
         self.rewards = reward
         self.states = state
+
 
 class BrainParameters:
     """

@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 import tensorflow.contrib.layers as c_layers
 
+
 class PPOModel:
 
     def __init__(self):
@@ -25,24 +26,29 @@ class PPOModel:
             List of hidden layer tensors.
         """
         self.state_in = tf.placeholder(shape=[None, s_size], dtype=tf.float32, name='state')
+
         if self.normalize > 0:
             self.running_mean = tf.get_variable('running_mean',
                                                 [s_size],
                                                 trainable=False,
                                                 dtype=tf.float32,
                                                 initializer=tf.zeros_initializer())
+
             self.running_variance = tf.get_variable('running_variance',
                                                     [s_size],
                                                     trainable=False,
                                                     dtype=tf.float32,
                                                     initializer=tf.ones_initializer())
+
             self.norm_running_variance = tf.get_variable('norm_running_variance',
                                                          [s_size],
                                                          trainable=False,
                                                          dtype=tf.float32,
                                                          initializer=tf.ones_initializer())
+
             self.normalized_state = tf.clip_by_value(
                 (self.state_in - self.running_mean) / tf.sqrt(self.norm_running_variance), -5, 5, name='normalized_state')
+
             self.new_mean = tf.placeholder(shape=[s_size], dtype=tf.float32, name='new_mean')
             self.new_variance = tf.placeholder(shape=[s_size], dtype=tf.float32, name='new_variance')
             self.update_mean = tf.assign(self.running_mean, self.new_mean)
@@ -51,12 +57,14 @@ class PPOModel:
                                                   self.running_variance / (tf.cast(self.global_step, tf.float32) + 1))
         else:
             self.normalized_state = self.state_in
+
         streams = []
         for _ in range(num_streams):
             hidden = self.normalized_state
             for _ in range(num_layers):
                 hidden = tf.layers.dense(hidden, h_size, use_bias=False, activation=activation)
             streams.append(hidden)
+
         return streams
 
     def _create_discrete_state_encoder(self, s_size, h_size, num_streams, activation, num_layers):
@@ -80,10 +88,12 @@ class PPOModel:
         state_onehot = c_layers.one_hot_encoding(state_in, s_size)
         streams = []
         hidden = state_onehot
+
         for _ in range(num_streams):
             for _ in range(num_layers):
                 hidden = tf.layers.dense(hidden, h_size, use_bias=False, activation=activation)
             streams.append(hidden)
+
         return streams
 
     def _create_global_steps(self):
@@ -120,6 +130,7 @@ class PPOModel:
                                                   self.global_step,
                                                   decay_steps=max_step,
                                                   end_learning_rate=1e-2)
+
         r_theta = probs / (old_probs + 1e-10)
         p_opt_a = r_theta * self.advantage
         p_opt_b = tf.clip_by_value(r_theta, 1 - decay_epsilon, 1 + decay_epsilon) * self.advantage
@@ -163,9 +174,11 @@ class PPOModel:
             c_channels = 1
         else:
             c_channels = 3
+
         self.observation_in = tf.placeholder(tf.float32,
                                              shape=[None, o_size_h, o_size_w, c_channels],
                                              name='observation_0')
+
         streams = []
         for _ in range(num_streams):
             self.conv1 = tf.layers.conv2d(self.observation_in,
@@ -174,14 +187,19 @@ class PPOModel:
                                           kernel_size=[8, 8],
                                           strides=[4, 4],
                                           use_bias=False)
+
             self.conv2 = tf.layers.conv2d(self.conv1,
                                           activation=activation,
                                           filters=32,
                                           kernel_size=[4, 4],
                                           strides=[2, 2],
                                           use_bias=False)
+
             hidden = c_layers.flatten(self.conv2)
+
             for _ in range(num_layers):
                 hidden = tf.layers.dense(hidden, h_size, use_bias=False, activation=activation)
+
             streams.append(hidden)
+
         return streams

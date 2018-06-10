@@ -5,6 +5,7 @@ import os
 import tensorflow as tf
 import tensorflow.python.tools.freeze_graph as freeze_graph
 
+
 def create_agent_model(env,
                        beta=1e-3,
                        epsilon=0.2,
@@ -35,8 +36,10 @@ def create_agent_model(env,
     """
     if num_layers < 1:
         num_layers = 1
+
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
+
     if brain.action_space_type == 'discrete':
         return control_models.DiscreteControlModel(beta,
                                                    brain,
@@ -46,6 +49,7 @@ def create_agent_model(env,
                                                    max_step,
                                                    normalize,
                                                    num_layers)
+
     return control_models.ContinuousControlModel(brain,
                                                  epsilon,
                                                  h_size,
@@ -53,6 +57,7 @@ def create_agent_model(env,
                                                  max_step,
                                                  normalize,
                                                  num_layers)
+
 
 def export_graph(model_path, env_name='env', target_nodes='action, value_estimate, action_probs'):
     """
@@ -77,6 +82,7 @@ def export_graph(model_path, env_name='env', target_nodes='action, value_estimat
                               input_saver='',
                               restore_op_name='save\\restore_all',
                               filename_tensor_name='save\\Const:0')
+
 
 def save_model(sess, saver, model_path='.\\', steps=0):
     """

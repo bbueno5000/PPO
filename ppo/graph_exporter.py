@@ -4,10 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal
 
+
 def init():
     ax.set_ylim(0, 700)
     ax.set_xlim(0, 15e6)
     return ln, _
+
 
 def update(i):
     j = int(i / 10)
@@ -17,6 +19,7 @@ def update(i):
     ydata.append(datalist[j] + delta * (datalist[j + 1] - datalist[j]))
     ln.set_data(xdata, ydata)
     return ln, _
+
 
 if __name__ == '__main__':
     plt.style.use('dark_background')
@@ -28,6 +31,7 @@ if __name__ == '__main__':
         csvlist = np.array(list(csvreader))
         steplist = csvlist[1:, 1].astype(np.int32)
         datalist = csvlist[1:, 2].astype(np.float) * 6
+
     datalist = scipy.signal.medfilt(datalist, kernel_size=15)
     fig, ax = plt.subplots()
     xdata, ydata = [], []
@@ -42,5 +46,6 @@ if __name__ == '__main__':
                                   init_func=init,
                                   blit=True,
                                   interval=1 / 60 * 1000)
+
     ani.save('episode_length.mp4', dpi=120, writer='ffmpeg')
     plt.show()
